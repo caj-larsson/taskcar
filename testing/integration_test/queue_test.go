@@ -19,7 +19,7 @@ func (s *IntTestSuite) TestQueueCancellation() {
 	pool := s.NewPool(ctx)
 	defer pool.Close()
 
-	q, _ := s.createTestQueue(ctx, pool, "echo '{}'")
+	q, _ := s.createTestQueue(ctx, "test", pool, "echo '{}'")
 	go q.ProcessTasksForever()
 
 	time.Sleep(10 * time.Millisecond) // Don't cancel before it's started
@@ -37,7 +37,7 @@ func (s *IntTestSuite) TestQueueStart() {
 	pool := s.NewPool(ctx)
 	defer pool.Close()
 
-	q, notifyChan := s.createTestQueue(ctx, pool, "echo -n '{}'")
+	q, notifyChan := s.createTestQueue(ctx, "test", pool, "echo -n '{}'")
 
 	go q.ProcessTasksForever()
 
@@ -72,7 +72,7 @@ func (s *IntTestSuite) TestQueuePermanentlyFailingTask() {
 	pool := s.NewPool(ctx)
 	defer pool.Close()
 
-	q, notifyChan := s.createTestQueue(ctx, pool, "exit 1")
+	q, notifyChan := s.createTestQueue(ctx, "test", pool, "exit 1")
 	go q.ProcessTasksForever()
 
 	createTask(ctx, pool, "test", []byte("{}"))
@@ -99,7 +99,7 @@ func (s *IntTestSuite) TestQueueRetryableTask() {
 	pool := s.NewPool(ctx)
 	defer pool.Close()
 
-	q, notifyChan := s.createTestQueue(ctx, pool, "exit 75")
+	q, notifyChan := s.createTestQueue(ctx, "test", pool, "exit 75")
 	go q.ProcessTasksForever()
 
 	createTask(ctx, pool, "test", []byte("{\"id\":1	}"))
@@ -125,7 +125,7 @@ func (s *IntTestSuite) TestTaskReleasedAfterQueueShutdown() {
 	pool := s.NewPool(ctx)
 
 	q1ctx, q1cancel := context.WithCancel(ctx)
-	q, notifyChan := s.createTestQueue(q1ctx, pool, "sleep 10")
+	q, notifyChan := s.createTestQueue(q1ctx, "test", pool, "sleep 10")
 	go q.ProcessTasksForever()
 	createTask(q1ctx, pool, "test", []byte("{}"))
 	notifyChan <- listener.Message{Queue: "test", Data: "{}"}
@@ -221,7 +221,9 @@ func (s *IntTestSuite) TestCreatesNewTasks() {
 	defer pool.Close()
 
 	q, notifyChan := s.createTestQueue(
-		ctx, pool,
+		ctx,
+		"test",
+		pool,
 		"echo -n '{\"new_tasks\":[{\"queue\": \"test2\", \"data\": {}}]}'",
 	)
 
@@ -235,7 +237,7 @@ func (s *IntTestSuite) TestCreatesNewTasks() {
 	createTask(ctx, pool, "test", []byte("{}"))
 
 	notifyChan <- listener.Message{Queue: "test", Data: "{}"}
-	time.Sleep(100 * time.Millisecond) // Wait for the task to be processed
+	time.Sleep(200 * time.Millisecond) // Wait for the task to be processed
 
 	counts, _ = testQueries.CurrentTasks(ctx)
 

@@ -13,7 +13,7 @@ func (s *IntTestSuite) TestBackoffPreventsDeque() {
 	defer cancel()
 	pool := s.NewPool(ctx)
 	defer pool.Close()
-	_, _ = s.createTestQueue(ctx, pool, "exit 75")
+	_, _ = s.createTestQueue(ctx, "test", pool, "exit 75")
 	queries := db.New(pool)
 	task_id, err := queries.CreateTask(ctx, db.CreateTaskParams{
 		Queue:  "test",
@@ -52,7 +52,7 @@ func (s *IntTestSuite) TestNodeLockPreventsDeque() {
 	defer cancel()
 	pool := s.NewPool(ctx)
 	defer pool.Close()
-	q1, _ := s.createTestQueue(ctx, pool, "exit 75")
+	q1, _ := s.createTestQueue(ctx, "test", pool, "exit 75")
 	queries := db.New(pool)
 	_, err := queries.CreateTask(ctx, db.CreateTaskParams{
 		Queue:  "test",

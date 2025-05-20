@@ -1,4 +1,4 @@
-package main
+package taskcar
 
 import (
 	"context"
@@ -20,7 +20,7 @@ type Taskcar struct {
 	ctx     context.Context
 	node    *node.Node
 	queueWg sync.WaitGroup
-	done    chan struct{}
+	Done    chan struct{}
 }
 
 func NewTaskcar(cfg config.Config, pool *pgxpool.Pool, ctx context.Context) (*Taskcar, error) {
@@ -35,7 +35,7 @@ func NewTaskcar(cfg config.Config, pool *pgxpool.Pool, ctx context.Context) (*Ta
 		ctx:     ctx,
 		node:    taskNode,
 		queueWg: sync.WaitGroup{},
-		done:    make(chan struct{}, 1),
+		Done:    make(chan struct{}, 1),
 	}, nil
 }
 
@@ -98,5 +98,5 @@ func (tc *Taskcar) waitForShutdown() {
 	slog.Debug("All queues finished, waiting for node shutdown")
 	<-tc.node.Done
 	slog.Debug("TaskCar finished")
-	close(tc.done)
+	close(tc.Done)
 }

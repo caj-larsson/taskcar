@@ -111,3 +111,10 @@ INSERT INTO taskcar.secret(
 ) VALUES(
     sqlc.arg(name), sqlc.arg(value)
 ) RETURNING secret_id;
+
+
+-- name: NotifyChannel :exec
+SELECT pg_notify(
+    sqlc.arg(channel),
+    ''
+);

@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 	"taskcar/config"
+	"taskcar/taskcar"
 	"time"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -38,13 +38,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	taskcar, err := NewTaskcar(*cfg, pool, ctx)
+	tc, err := taskcar.NewTaskcar(*cfg, pool, ctx)
 	if err != nil {
 		slog.Error("Failed to create TaskCar", "error", err)
 		os.Exit(1)
 	}
 	go func() {
-		if err := taskcar.Serve(); err != nil {
+		if err := tc.Serve(); err != nil {
 			slog.Error("TaskCar failed", "error", err)
 			cancel()
 		}
@@ -55,7 +55,7 @@ func main() {
 	cancel()
 
 	select {
-	case <-taskcar.done:
+	case <-tc.Done:
 		slog.Info("TaskCar shut down")
 	case <-time.After(30 * time.Second):
 		slog.Error("TaskCar did not shut down in time, forcing exit")

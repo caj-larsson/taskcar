@@ -29,10 +29,15 @@ func TestIntegration(t *testing.T) {
 	suite.Run(t, new(IntTestSuite))
 }
 
-func (s *IntTestSuite) createTestQueue(ctx context.Context, pool *pgxpool.Pool, command string) (*queue.Queue, chan listener.Message) {
+func (s *IntTestSuite) createTestQueue(
+	ctx context.Context,
+	queueName string,
+	pool *pgxpool.Pool,
+	command string,
+) (*queue.Queue, chan listener.Message) {
 	notifyChan := make(chan listener.Message, 1024)
 	cfg := config.QueueConfig{
-		QueueName: "test",
+		QueueName: queueName,
 		Command:   command,
 	}
 

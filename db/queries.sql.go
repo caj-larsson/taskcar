@@ -215,6 +215,18 @@ func (q *Queries) NodeShutdown(ctx context.Context, nodeID int64) error {
 	return err
 }
 
+const notifyChannel = `-- name: NotifyChannel :exec
+SELECT pg_notify(
+    $1,
+    ''
+)
+`
+
+func (q *Queries) NotifyChannel(ctx context.Context, channel string) error {
+	_, err := q.db.Exec(ctx, notifyChannel, channel)
+	return err
+}
+
 const releaseTask = `-- name: ReleaseTask :exec
 UPDATE taskcar.task
 SET locked_by = null
