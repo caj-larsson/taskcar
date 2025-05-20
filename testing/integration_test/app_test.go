@@ -2,8 +2,8 @@ package integrationtest_test
 
 import (
 	"context"
+	"taskcar/app"
 	"taskcar/config"
-	"taskcar/taskcar"
 	"taskcar/testing/testdb"
 	"time"
 )
@@ -15,7 +15,7 @@ func (s *IntTestSuite) TestNodeRunsNewTasks() {
 	pool := s.NewPool(ctx)
 	defer pool.Close()
 	testQueries := testdb.New(pool)
-	tc, err := taskcar.NewTaskcar(
+	tc, err := app.NewTaskcar(
 		config.Config{
 			PGConnStr: s.ConnString,
 			Queues: []config.QueueConfig{

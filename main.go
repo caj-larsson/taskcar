@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"taskcar/app"
 	"taskcar/config"
-	"taskcar/taskcar"
 	"time"
 )
 
@@ -38,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	tc, err := taskcar.NewTaskcar(*cfg, pool, ctx)
+	tc, err := app.NewTaskcar(*cfg, pool, ctx)
 	if err != nil {
 		slog.Error("Failed to create TaskCar", "error", err)
 		os.Exit(1)
