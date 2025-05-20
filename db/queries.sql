@@ -96,3 +96,18 @@ SET
     max_attempts = sqlc.arg(max_attempts),
     backoff_path = sqlc.arg(backoff_path),
     backoff_int = sqlc.arg(backoff_int);
+
+-- name: GetSecrets :many
+SELECT
+    name, value
+FROM taskcar.secret
+WHERE
+    name = ANY(sqlc.arg('names')::text[]);
+
+
+-- name: CreateSecret :one
+INSERT INTO taskcar.secret(
+    name, value
+) VALUES(
+    sqlc.arg(name), sqlc.arg(value)
+) RETURNING secret_id;

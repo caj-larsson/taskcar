@@ -162,9 +162,8 @@ func (s *IntTestSuite) TestSecretUsage() {
 		Command: "echo -n {\\\"data\\\":\\\"$SECRET\\\"}",
 		Secrets: []config.SecretConfig{
 			{
-				Name:  "SECRET",
-				Value: "testsecret",
-				Type:  "env",
+				Name:   "test",
+				EnvKey: "SECRET",
 			},
 		},
 	}
@@ -175,6 +174,12 @@ func (s *IntTestSuite) TestSecretUsage() {
 	}
 	defer conn.Release()
 	queries := db.New(conn)
+
+	queries.CreateSecret(ctx, db.CreateSecretParams{
+		Name:  "test",
+		Value: "testsecretvalue",
+	})
+
 	queries.UpsertQueue(ctx, db.UpsertQueueParams{
 		Queue:       cfg.QueueName,
 		MaxAttempts: 3,
@@ -205,7 +210,7 @@ func (s *IntTestSuite) TestSecretUsage() {
 	if err != nil {
 		t.Fatalf("Failed to get completed task: %v", err)
 	}
-	assert.Equal(t, "{\"data\": \"testsecret\"}", string(cc.OutData), "Expected task to be processed and deleted from the queue")
+	assert.Equal(t, "{\"data\": \"testsecretvalue\"}", string(cc.OutData), "Expected task to be processed and deleted from the queue")
 }
 
 func (s *IntTestSuite) TestCreatesNewTasks() {

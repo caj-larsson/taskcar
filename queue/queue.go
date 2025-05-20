@@ -47,19 +47,58 @@ func New(pool *pgxpool.Pool, nodeId int64, checkChan listener.MessageChan, cfg c
 		return nil, err
 	}
 	dbCtx, dbCancel := context.WithCancel(context.Background())
-	return &Queue{
+
+	q := &Queue{
 		NodeId:     nodeId,
 		Name:       cfg.QueueName,
 		config:     cfg,
 		pool:       pool,
 		checkChan:  checkChan,
 		taskRunner: runner,
-		envVars:    cfg.Secrets.GetEnv(),
 		ctx:        ctx,
 		dbCtx:      dbCtx,
 		dbCancel:   dbCancel,
 		Done:       make(chan struct{}, 1),
-	}, nil
+	}
+
+	err = q.setSecrets()
+	if err != nil {
+		return nil, fmt.Errorf("failed to set secrets: %w", err)
+	}
+
+	return q, nil
+}
+
+// -- Queue Setup Methods --
+
+// setSecrets fetches the secret values from the database then generates the Env
+// format for the queues configured variable names and stores them in the queue.
+func (q *Queue) setSecrets() error {
+	secretNames := make([]string, len(q.config.Secrets))
+	for i, secret := range q.config.Secrets {
+		secretNames[i] = secret.Name
+	}
+
+	secrets := make(map[string]string)
+
+	conn, err := q.pool.Acquire(q.dbCtx)
+	if err != nil {
+		return fmt.Errorf("failed to acquire connection: %w", err)
+	}
+	defer conn.Release()
+	queries := db.New(conn)
+	secretRows, err := queries.GetSecrets(q.dbCtx, secretNames)
+	if err != nil {
+		return fmt.Errorf("failed to get secrets: %w", err)
+	}
+
+	for _, secret := range secretRows {
+		secrets[secret.Name] = secret.Value
+	}
+
+	q.envVars = q.config.Secrets.GenerateEnvSlice(secrets)
+
+	return nil
 }
 
 // -- Task Queue Processing --

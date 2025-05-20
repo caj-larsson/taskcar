@@ -32,6 +32,26 @@ func (q *Queries) CreateCompletedTask(ctx context.Context, arg CreateCompletedTa
 	return err
 }
 
+const createSecret = `-- name: CreateSecret :one
+INSERT INTO taskcar.secret(
+    name, value
+) VALUES(
+    $1, $2
+) RETURNING secret_id
+`
+
+type CreateSecretParams struct {
+	Name  string
+	Value string
+}
+
+func (q *Queries) CreateSecret(ctx context.Context, arg CreateSecretParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createSecret, arg.Name, arg.Value)
+	var secret_id int64
+	err := row.Scan(&secret_id)
+	return secret_id, err
+}
+
 const createTask = `-- name: CreateTask :one
 INSERT INTO taskcar.task(
     queue, in_data
@@ -130,6 +150,39 @@ func (q *Queries) DequeTasks(ctx context.Context, arg DequeTasksParams) ([]Deque
 			&i.CreatedAt,
 			&i.InData,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getSecrets = `-- name: GetSecrets :many
+SELECT
+    name, value
+FROM taskcar.secret
+WHERE
+    name = ANY($1::text[])
+`
+
+type GetSecretsRow struct {
+	Name  string
+	Value string
+}
+
+func (q *Queries) GetSecrets(ctx context.Context, names []string) ([]GetSecretsRow, error) {
+	rows, err := q.db.Query(ctx, getSecrets, names)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSecretsRow
+	for rows.Next() {
+		var i GetSecretsRow
+		if err := rows.Scan(&i.Name, &i.Value); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

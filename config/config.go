@@ -10,22 +10,21 @@ import (
 
 // SecretConfig represents a secret configuration for a task.
 type SecretConfig struct {
-	Name  string `yaml:"name"`
-	Value string `yaml:"value"`
-	Type  string `yaml:"type"`
+	// Name of the stored secret
+	Name string `yaml:"name"`
+	// Environment variable to bind the secret to
+	EnvKey string `yaml:"env_key"`
 }
 
 // SecretConfigList is a list of SecretConfig.
 type SecretConfigList []SecretConfig
 
 // GetEnv returns a list of environment variables in correct format.
-func (s SecretConfigList) GetEnv() []string {
-	envs := make([]string, 0)
+func (s SecretConfigList) GenerateEnvSlice(secrets map[string]string) []string {
+	envs := make([]string, len(secrets))
 
-	for _, secret := range s {
-		if secret.Type == "env" {
-			envs = append(envs, secret.Name+"="+secret.Value)
-		}
+	for i, secret := range s {
+		envs[i] = fmt.Sprintf("%s=%s", secret.EnvKey, secrets[secret.Name])
 	}
 	return envs
 }
