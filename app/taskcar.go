@@ -9,7 +9,6 @@ import (
 	"taskcar/listener"
 	"taskcar/node"
 	"taskcar/queue"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -91,8 +90,6 @@ func (tc *Taskcar) waitForShutdown() {
 	select {
 	case <-done:
 		slog.Debug("All queues finished gracefully")
-	case <-time.After(30 * time.Second):
-		slog.Warn("Timeout waiting for queues to finish, shutting down")
 	}
 
 	slog.Debug("All queues finished, waiting for node shutdown")
