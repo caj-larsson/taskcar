@@ -16,9 +16,6 @@ import (
 )
 
 func process() {
-	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	})))
 	sigs := make(chan os.Signal, 1)
 
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -29,6 +26,10 @@ func process() {
 		slog.Error("Failed to load config", "error", err)
 		return
 	}
+
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: cfg.LogLevel(),
+	})))
 
 	dbCtx, dbCancel := context.WithCancel(context.Background())
 	defer dbCancel()

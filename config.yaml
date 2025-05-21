@@ -1,4 +1,5 @@
 pg_conn_str: "postgres://postgres:localdev@localhost:5433/postgres?sslmode=disable"
+log_level: "info"
 queues:
   - name: test
     command: "echo {}"
