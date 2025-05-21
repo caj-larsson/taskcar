@@ -21,6 +21,7 @@ type Task struct {
 	Queue     string
 	CreatedAt time.Time
 	Command   string
+	Dir       string
 	EnvVars   []string
 	InData    []byte
 }

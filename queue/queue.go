@@ -239,6 +239,7 @@ func (q *Queue) takeTask() (*taskrunner.Task, error) {
 			Command:   q.config.Command,
 			InData:    taskRows[0].InData,
 			EnvVars:   q.envVars,
+			Dir:       q.config.Dir,
 		}
 		return nil
 	})

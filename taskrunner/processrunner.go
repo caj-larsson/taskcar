@@ -30,6 +30,9 @@ func (p *ProcessTaskRunner) RunTask(task Task, ctx context.Context) (*TaskResult
 	}
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", task.Command)
+	if task.Dir != "" {
+		cmd.Dir = task.Dir
+	}
 	cmd.Env = append(os.Environ(), task.EnvVars...)
 
 	// Do not log env as it may contain secrets

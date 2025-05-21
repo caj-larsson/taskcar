@@ -147,7 +147,7 @@ func (s *IntTestSuite) TestTaskReleasedAfterQueueShutdown() {
 	assert.Equal(t, 1, len(rows), "Expected one task to be dequeued")
 }
 
-func (s *IntTestSuite) TestSecretUsage() {
+func (s *IntTestSuite) TestSecretUsageAndDir() {
 	t := s.T()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -159,13 +159,14 @@ func (s *IntTestSuite) TestSecretUsage() {
 	cfg := config.QueueConfig{
 		QueueName: "test",
 		// Extra quotes to escape the shell for escaped json string
-		Command: "echo -n {\\\"data\\\":\\\"$SECRET\\\"}",
+		Command: "echo -n {\\\"data\\\":{\\\"secret\\\":\\\"$SECRET\\\", \\\"PWD\\\": \\\"$PWD\\\"}}",
 		Secrets: []config.SecretConfig{
 			{
 				Name:   "test",
 				EnvKey: "SECRET",
 			},
 		},
+		Dir: "/tmp",
 	}
 
 	conn, err := pool.Acquire(ctx)
@@ -210,7 +211,12 @@ func (s *IntTestSuite) TestSecretUsage() {
 	if err != nil {
 		t.Fatalf("Failed to get completed task: %v", err)
 	}
-	assert.Equal(t, "{\"data\": \"testsecretvalue\"}", string(cc.OutData), "Expected task to be processed and deleted from the queue")
+	assert.Equal(
+		t,
+		"{\"data\": {\"PWD\": \"/tmp\", \"secret\": \"testsecretvalue\"}}",
+		string(cc.OutData),
+		"Expected task to be processed and deleted from the queue",
+	)
 }
 
 func (s *IntTestSuite) TestCreatesNewTasks() {

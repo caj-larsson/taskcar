@@ -32,9 +32,13 @@ func (s SecretConfigList) GenerateEnvSlice(secrets map[string]string) []string {
 
 // QueueConfig represents a configuration for a task queue.
 type QueueConfig struct {
-	QueueName string           `yaml:"name"`
-	Command   string           `yaml:"command"`
-	Secrets   SecretConfigList `yaml:"secrets"`
+	QueueName string `yaml:"name"`
+	// Command to run for the task, will be passed to sh -c so must be escaped
+	// accordingly
+	Command string           `yaml:"command"`
+	Secrets SecretConfigList `yaml:"secrets"`
+	// Dir is the working directory for the command
+	Dir string `yaml:"dir"`
 }
 
 // Config represents the main configuration for the application.
